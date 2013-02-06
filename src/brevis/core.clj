@@ -89,10 +89,11 @@ are removed from the simulation."
   [[dt time] state]
   (text/write-to-screen (str (int (/ 1 dt)) " fps") 0 0)
   (text/write-to-screen (str (:simulation-time state) " time") 0 30)
-  (text/write-to-screen (str (count (filter #(= (:type %) :bird) (:objects state))) " birds") 0 60)
+;  (text/write-to-screen (str (count (filter #(= (:type %) :bird) (:objects state))) " birds") 0 60)
   (rotate (:rot-x state) 1 0 0)
   (rotate (:rot-y state) 0 1 0)
-  (translate 0 10 (:shift-z state))
+  (rotate (:rot-z state) 0 0 1)
+  (translate (:shift-x state) (:shift-y state) (:shift-z state))
   (with-disabled :texture-2d
     (doseq [obj (:objects state)]
       (draw-shape obj)))
@@ -105,14 +106,15 @@ are removed from the simulation."
     ; Rotate
     (= :left button)
     (assoc state
-           :rot-x (+ (:rot-x state) dy)
+;           :rot-x (+ (:rot-x state) dy)
+           :rot-z (+ (:rot-z state) dy)           
            :rot-y (+ (:rot-y state) dx))
     ; Zoom
     (= :right button)
     (assoc state
            :shift-y (+ (:shift-z state)
                        dy)
-           :shift-z (+ (:shift-z state)
+           :shift-x (+ (:shift-x state)
                       dx))))
 
 ;; Screenshot code
@@ -148,8 +150,8 @@ are removed from the simulation."
    {:reshape reshape, :init init, :mouse-drag mouse-drag, :key-press key-press, :update update, :display display}
    (assoc (initialize)
 ;       :mouse-mode [:rot-x :rot-y]                                                                                                                                      
-       :rot-x 0 :rot-y 0 :rot-z 0
-       :shift-x 0 :shift-y 20 :shift-z -30
+       :rot-x 0 :rot-y 0 :rot-z 90
+       :shift-x 0 :shift-y 20 :shift-z 0;-30
        :init-simulation initialize
 	                 :dt dt
                          :last-report-time 0
