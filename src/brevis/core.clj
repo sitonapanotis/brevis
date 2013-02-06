@@ -6,6 +6,7 @@
         [brevis.physics.space]
         [brevis.shape core box])       
   (:require [penumbra.app :as app]
+            [clojure.math.numeric-tower :as math]
             [penumbra.text :as text]
             [penumbra.data :as data]
             [cantor.range]
@@ -89,6 +90,10 @@ are removed from the simulation."
   [[dt time] state]
   (text/write-to-screen (str (int (/ 1 dt)) " fps") 0 0)
   (text/write-to-screen (str (:simulation-time state) " time") 0 30)
+  (text/write-to-screen (str "Rotation [active " (:rotate-mode state) "]: (" 
+                             (:rot-x state) "," (:rot-y state) "," (:rot-z state) ")") 0 60)
+  (text/write-to-screen (str "Translation [active " (:translate-mode state) "]: (" 
+                             (:shift-x state) "," (:shift-y state) "," (:shift-z state) ")") 0 90)
 ;  (text/write-to-screen (str (count (filter #(= (:type %) :bird) (:objects state))) " birds") 0 60)
   (rotate (:rot-x state) 1 0 0)
   (rotate (:rot-y state) 0 1 0)
@@ -99,7 +104,7 @@ are removed from the simulation."
       (draw-shape obj)))
   (app/repaint!))
 
-(defn mouse-drag
+#_(defn mouse-drag
   "Rotate the world."
   [[dx dy] _ button state]
   (cond 
@@ -116,6 +121,26 @@ are removed from the simulation."
                        dy)
            :shift-x (+ (:shift-x state)
                       dx))))
+
+(defn mouse-drag
+  "Rotate the world."
+  [[dx dy] _ button state]
+  (let [displacement dx];(math/sqrt (+ (* dx dx) (* dy dy)))]
+	  (cond 
+	    ; Rotate
+	    (= :left button)
+      (merge state
+             (cond 
+               (= (:rotate-mode state) :x) {:rot-x (+ (:rot-x state) displacement)}               
+               (= (:rotate-mode state) :y) {:rot-y (+ (:rot-y state) displacement)}               
+               (= (:rotate-mode state) :z) {:rot-z (+ (:rot-z state) displacement)}))
+	    ; Zoom
+	    (= :right button)
+	    (merge state
+             (cond 
+               (= (:translate-mode state) :x) {:shift-x (+ (:shift-x state) displacement)}               
+               (= (:translate-mode state) :y) {:shift-y (+ (:shift-y state) displacement)}               
+               (= (:translate-mode state) :z) {:shift-z (+ (:shift-z state) displacement)})))))
 
 ;; Screenshot code
 
@@ -136,6 +161,18 @@ are removed from the simulation."
   (cond
 ;   (= "s" key) (screenshot state)
 ;   (= "r" key) (reset-simulation state)
+   (= "q" key) (assoc state
+                      :rotate-mode :x)
+   (= "w" key) (assoc state
+                      :rotate-mode :y)
+   (= "e" key) (assoc state
+                      :rotate-mode :z)
+   (= "a" key) (assoc state
+                      :translate-mode :x)
+   (= "s" key) (assoc state
+                      :translate-mode :y)
+   (= "d" key) (assoc state
+                      :translate-mode :z)
    (= "p" key) (do (app/pause!)
                  state)
    (= :escape key)
@@ -149,7 +186,8 @@ are removed from the simulation."
   (app/start
    {:reshape reshape, :init init, :mouse-drag mouse-drag, :key-press key-press, :update update, :display display}
    (assoc (initialize)
-;       :mouse-mode [:rot-x :rot-y]                                                                                                                                      
+;       :mouse-mode [:rot-x :rot-y]
+       :rotate-mode :x :translate-mode :x
        :rot-x 0 :rot-y 0 :rot-z 90
        :shift-x 0 :shift-y 20 :shift-z 0;-30
        :init-simulation initialize
