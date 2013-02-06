@@ -92,7 +92,7 @@ are removed from the simulation."
   (text/write-to-screen (str (count (filter #(= (:type %) :bird) (:objects state))) " birds") 0 60)
   (rotate (:rot-x state) 1 0 0)
   (rotate (:rot-y state) 0 1 0)
-  (translate 0 0 (:shift-z state))
+  (translate 0 10 (:shift-z state))
   (with-disabled :texture-2d
     (doseq [obj (:objects state)]
       (draw-shape obj)))
